@@ -1,39 +1,47 @@
 # Network Setup – LabSec Solutions
 
-Tento dokument popisuje základní síťovou konfiguraci testovacího
-lab prostředí a ověření konektivity mezi virtuálními stroji.
+Tento dokument popisuje síťovou konfiguraci Ubuntu Serveru v testovacím
+lab prostředí: síťové adaptéry, IP adresy a směrovací tabulku.
 
 ## Použité systémy
-- Ubuntu Server
-- Ubuntu Desktop
+- Ubuntu Server (192.168.100.10)
+- Ubuntu Desktop (192.168.100.20)
 - Interní síť: LAN1 (VirtualBox Internal Network)
 
 ---
 
-## Ověření síťové konektivity (Ping)
+## Adresní plán
 
-Cílem testu je ověřit, že Ubuntu Desktop a Ubuntu Server spolu
-komunikují v interní síti LAN1.
+| Uzel | Rozhraní | Typ sítě | IP adresa | Přidělení |
+| :--- | :--- | :--- | :--- | :--- |
+| Ubuntu Server | enp0s3 | NAT | 10.0.2.15/24 | DHCP (VirtualBox) |
+| Ubuntu Server | enp0s8 | LAN1 | 192.168.100.10/24 | statická (netplan) |
+| Ubuntu Desktop | enp0s8 | LAN1 | 192.168.100.20/24 | statická |
 
-### Použitý příkaz (Ubuntu Desktop)
+## Výpis IP adres a směrovací tabulky
+
+Cílem je ověřit konfiguraci síťových adaptérů a směrovací tabulky
+na Ubuntu Serveru.
+
+### Použité příkazy (Server)
 ```bash
-ping 192.168.100.10
+ip a
+ip route
 ```
+
 ## Výsledek
-Ping byl úspěšný. Bylo potvrzeno:
-
-funkční interní síť LAN1
-
-správné nastavení IP adres
-
-neblokovaný ICMP provoz
+- Rozhraní `lo` (loopback, 127.0.0.1/8) je aktivní.
+- Rozhraní `enp0s3` (NAT) má adresu 10.0.2.15/24 přidělenou přes DHCP.
+- Rozhraní `enp0s8` (LAN1) má statickou adresu 192.168.100.10/24.
+- Výchozí brána vede přes NAT (`default via 10.0.2.2 dev enp0s3`).
+- Síť LAN1 je dostupná přímo přes `enp0s8` (`192.168.100.0/24 dev enp0s8`), bez brány.
 
 ## Důkaz
-
-![Ping test](../Screenshots/ping_server.png)
+![Výpis ip a a ip route na serveru](../Screenshots/ip_route.png)
 
 ## Závěr
-Základní síťová konektivita mezi virtuálními stroji v lab prostředí
-je funkční.
+Konfigurace síťových adaptérů a směrovací tabulky na serveru je
+správná: internetový provoz jde přes NAT, provoz v LAN1 zůstává
+v interní síti.
 
 [← Zpět na hlavní přehled](../README.md)

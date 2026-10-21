@@ -1,38 +1,38 @@
-# Network Diagnostics – LabSec Solutions
+# Network Connectivity Test – LabSec Solutions
 
-Tento dokument popisuje základní diagnostiku sítě v testovacím
-lab prostředí mezi Ubuntu Server a Ubuntu Desktop.
+Tento dokument popisuje ověření konektivity mezi Ubuntu Desktopem
+a Ubuntu Serverem v interní síti LAN1.
 
 ## Použité systémy
-- Ubuntu Server
-- Ubuntu Desktop
+- Ubuntu Server (192.168.100.10)
+- Ubuntu Desktop (192.168.100.20)
 - Interní síť: LAN1 (VirtualBox Internal Network)
 
 ---
 
-## Výpis IP adres a směrovací tabulky
+## Ověření síťové konektivity (Ping)
 
-Cílem je ověřit konfiguraci síťových adaptérů a směrovací tabulky
-na Ubuntu Serveru.
+Cílem testu je ověřit, že Ubuntu Desktop a Ubuntu Server spolu
+komunikují v interní síti LAN1.
 
-### Použité příkazy
-
+### Použitý příkaz (Desktop)
 ```bash
-ip a
-ip route
+ping 192.168.100.10
 ```
+
 ## Výsledek
-Ověřen správný IP rozsah pro interní síť
+Ping byl úspěšný (6 paketů odesláno, 6 přijato, 0 % ztrát). Bylo potvrzeno:
 
-Ověřena přítomnost loopback a interního adaptéru
-
-Směrovací tabulka obsahuje správné cesty pro LAN1
+- funkční interní síť LAN1
+- správné nastavení IP adres (Desktop 192.168.100.20/24 na `enp0s8`)
+- neblokovaný ICMP provoz
 
 ## Důkaz
-![Ping test](../Screenshots/ip_route.png)
+![Ping z Desktopu na Server](../Screenshots/ping_server.png)
 
 ## Závěr
-Konfigurace síťových adaptérů a směrovací tabulky na serveru je
-správná a připravená.
+Základní síťová konektivita mezi virtuálními stroji v lab prostředí
+je funkční. Průchod ICMP paketů je dále analyzován ve
+[Wireshark capture](./wireshark.md).
 
 [← Zpět na hlavní přehled](../README.md)
