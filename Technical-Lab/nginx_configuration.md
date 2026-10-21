@@ -1,9 +1,11 @@
 # Nginx Configuration & Service Recovery – LabSec Solutions
 
-Tento dokument popisuje diagnostiku a opravu chybné konfigurace webového serveru Nginx, která způsobila výpadek služby, a následné obnovení provozu bez nutnosti restartu celého operačního systému.
+Tento dokument popisuje nasazení webového serveru Nginx místo Apache2,
+diagnostiku chybné konfigurace, která způsobila výpadek služby,
+a obnovení provozu bez restartu celého operačního systému.
 
 ## Použité systémy
-- Ubuntu Server: Cílový uzel s běžícím Nginx (192.168.100.10)
+- Ubuntu Server: cílový uzel s Nginx (192.168.100.10)
 - Interní síť: LAN1 (VirtualBox Internal Network)
 
 ---
@@ -11,51 +13,64 @@ Tento dokument popisuje diagnostiku a opravu chybné konfigurace webového serve
 ## Popis incidentu a verifikace
 Cílem bylo identifikovat příčinu selhání služby Nginx a provést nápravu tak, aby:
 
-- byla zachována integrita konfigurace (nginx -t)
-
-- služba byla řádně spuštěna (restart služby, nikoliv OS)
-
-- byla ověřena syntaktická správnost před nasazením
+- byla před nasazením ověřena syntaktická správnost konfigurace (`nginx -t`)
+- byla restartována pouze služba, nikoliv celý OS
 
 ## Diagnostika a oprava (postup)
-1. Detekce chyby
-Nejprve bylo nutné zjistit, proč služba neběží. K tomu slouží standardní systémové nástroje:
 
-Bash
+### 1. Detekce chyby
+Nejprve bylo nutné zjistit, proč služba neběží:
 
-```sudo systemctl status nginx```
+```bash
+sudo systemctl status nginx
+sudo journalctl -u nginx --no-pager | tail -n 20
+```
 
-```sudo journalctl -u nginx --no-pager | tail -n 20```
+Log odhalil dva problémy v různých časech:
 
-2. Validace konfigurace
+- **Konflikt portu:** `bind() to 0.0.0.0:80 failed (98: Address already in use)` – port 80 obsazoval dosud běžící Apache2. Po jeho zastavení se Nginx spustil úspěšně.
+- **Chyba konfigurace:** `host not found in "80abc" of the "listen" directive` – neplatná hodnota direktivy `listen`, služba se nespustila.
 
-Příkaz pro kontrolu syntaxe odhalil konkrétní chybu v konfiguračním souboru:
+### 2. Validace konfigurace
+Kontrola syntaxe určila přesné místo chyby:
 
-```sudo nginx -t```
+```bash
+sudo nginx -t
+```
 
-3. Oprava a restart služby
-   
-Po odstranění chyby v souboru (např. v /etc/nginx/nginx.conf) byla služba znovu nahrána:
+```
+[emerg] host not found in "80abc" of the "listen" directive in /etc/nginx/sites-enabled/default:22
+nginx: configuration file /etc/nginx/nginx.conf test failed
+```
 
-```sudo systemctl restart nginx```
+### 3. Oprava a restart služby
+V souboru `/etc/nginx/sites-enabled/default` byla direktiva opravena
+z `listen 80abc default_server;` na `listen 80 default_server;`.
+Po úspěšném testu syntaxe byla restartována pouze služba:
+
+```bash
+sudo nginx -t
+sudo systemctl restart nginx
+```
 
 ## Výsledek
-Autentizace: Služba Nginx je nyní plně funkční a v aktivním stavu (active (running)).
-
-Konfigurace: Výstup nginx -t potvrzuje, že syntaxe je v pořádku a konfigurační test byl úspěšný.
-
-Dostupnost: Webová služba byla obnovena okamžitě po opravě konfiguračního souboru, čímž se eliminoval zbytečný downtime způsobený případným rebootem.
+- **Služba:** Nginx je plně funkční a v aktivním stavu (`active (running)`).
+- **Konfigurace:** výstup `nginx -t` potvrzuje `syntax is ok` a `test is successful`.
+- **Dostupnost:** webová služba byla obnovena okamžitě po opravě konfigurace, bez zbytečného downtime způsobeného rebootem.
 
 ## Důkaz
-![Ping test](../Screenshots/nginx_broken.png)
+![Chybná direktiva listen 80abc a neúspěšný restart](../Screenshots/nginx_broken.png)
 
-![Ping test](../Screenshots/nginx_failed.png)
+![Log služby Nginx (journalctl)](../Screenshots/nginx_failed.png)
 
-![Ping test](../Screenshots/nginx_error.png)
+![Výstup nginx -t s chybou](../Screenshots/nginx_error.png)
 
-![Ping test](../Screenshots/nginx_repaired.png)
+![Opravená konfigurace a úspěšný nginx -t](../Screenshots/nginx_repaired.png)
 
 ## Závěr
-Díky nástrojům pro kontrolu syntaxe (nginx -t) a správě služeb přes systemctl byla chyba rychle lokalizována a odstraněna. Postup demonstruje efektivní správu webového serveru s minimálním dopadem na dostupnost ostatních služeb běžících na stejném uzlu.
+Díky logům (`journalctl`), kontrole syntaxe (`nginx -t`) a správě služeb
+přes `systemctl` byla chyba rychle lokalizována a odstraněna. Postup
+demonstruje správu webového serveru s minimálním dopadem na dostupnost
+ostatních služeb běžících na stejném uzlu.
 
 [← Zpět na hlavní přehled](../README.md)

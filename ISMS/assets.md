@@ -11,4 +11,6 @@
 | Log Files (/var/log) | Admin | Informace | Medium |
 | Firewall Rules (UFW) | Admin | Konfigurace | High |
 | Installed Packages / Software Inventory | Admin | Informace | Medium |
-| Backups | Admin | Informace | (prázdné → riziko) |
+| Backups | Admin | Informace | High |
+
+> Poznámka: Zálohy aktuálně neexistují – jde o identifikované riziko, viz [risk_assessment.md](./risk_assessment.md).

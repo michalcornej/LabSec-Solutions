@@ -4,8 +4,8 @@ Tento dokument popisuje základní zachycení síťového provozu
 v testovacím lab prostředí mezi Ubuntu Desktopem a Ubuntu Serverem.
 
 ## Použité systémy
-- Ubuntu Server
-- Ubuntu Desktop
+- Ubuntu Server (192.168.100.10)
+- Ubuntu Desktop (192.168.100.20)
 - Interní síť: LAN1 (VirtualBox Internal Network)
 - Wireshark (Desktop)
 
@@ -17,7 +17,8 @@ Cílem je ověřit, že ICMP echo request a echo reply funguje
 v interní síti LAN1 a že lze vizualizovat pakety pomocí Wireshark.
 
 ### Použitý příkaz / filtr
-- Spuštěno zachytávání na Desktopu
+- Spuštěno zachytávání na Desktopu (rozhraní `enp0s8`)
+- Ping na server: `ping 192.168.100.10`
 - Filtr Wireshark: `icmp`
 
 ## Výsledek
@@ -26,7 +27,7 @@ v interní síti LAN1 a že lze vizualizovat pakety pomocí Wireshark.
 - Komunikace potvrzuje funkční interní síť a průchod ICMP provozu
 
 ## Důkaz
-![Ping test](../Screenshots/wireshark_icmp.png)
+![Zachycené ICMP pakety ve Wiresharku](../Screenshots/wireshark_icmp.png)
 
 ---
 
